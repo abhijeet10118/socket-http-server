@@ -22,12 +22,12 @@ I built this to understand what actually happens underneath web frameworks: TCP 
 ├── server.py            # the HTTP server
 ├── static/              # files served by the server (put index.html here)
 │   └── index.html
-├── load_test.py         # concurrent load test (1000 requests, 100 clients)
-├── keepalive_test.py    # verifies keep-alive over a single connection
+├── benchmark.py         # concurrent load test (1000 requests, 100 clients)
+├── keep_alive.py        # verifies keep-alive over a single connection
 └── simple_test.py       # minimal two-request manual test
 ```
 
-> Rename the files above to match your actual filenames.
+> Rename `server.py` and `simple_test.py` if your files are named differently.
 
 ## Requirements
 
@@ -92,17 +92,31 @@ The idle timeout for a connection is `conn.settimeout(5)` in `worker()`.
 
 All three tests expect the server to be running on `localhost:8080`.
 
-**Load test**: fires 1000 requests from 100 concurrent clients and reports success count, average response time, total time, and throughput:
+**Load test**: fires 1000 requests from 100 concurrent clients (each on a fresh connection with `Connection: close`) and reports success count, average response time, total time, and throughput:
 
 ```bash
-python load_test.py
+python benchmark.py
 ```
 
-**Keep-alive test**: sends `/`, `/about`, and `/missing` over one connection, reading each response fully using `Content-Length`, and closes on the last one:
+Result on my machine (localhost, 3 workers, small static page):
+
+```
+Successful requests: 1000 / 1000
+Failed requests: 0
+Average response time: 48.12 ms
+Total elapsed time: 0.515 seconds
+Throughput: 1940.85 requests/sec
+```
+
+These numbers are only indicative: client and server run on the same machine, the page is tiny, and the server prints debug output for every request.
+
+**Keep-alive test**: sends `/`, `/about`, and `/missing` over one connection, reading each response fully using `Content-Length`, and closes on the last one. The server log confirms all three requests arrived from the same client port, so the connection was reused:
 
 ```bash
-python keepalive_test.py
+python keep_alive.py
 ```
+
+Expected output: `200 OK` for `/` and `/about` (`Connection: keep-alive`), then `404 Not Found` for `/missing`.
 
 **Simple test**: sends two requests on one connection and prints the raw responses:
 
@@ -129,5 +143,4 @@ The architecture and logic (worker pool design, two-phase request reading, keep-
 
 ## License
 
-MIT
-
+MIT 
