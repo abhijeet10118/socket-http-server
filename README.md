@@ -127,6 +127,4 @@ Ideas for next steps: return `400` for bad requests, strip query strings, add `H
 
 The architecture and logic (worker pool design, two-phase request reading, keep-alive loop, path-safety checks, test plan) are my own. I used AI assistance for basic boilerplate coding.
 
-## License
 
-MIT (or choose your own).
